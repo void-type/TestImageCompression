@@ -21,3 +21,6 @@ foreach (var test in tests)
     await WebpBenchmarks.Compress(testPngBytes, test, 8000);
     await WebpBenchmarks.Compress(testPngBytes, test, 1200);
 }
+
+// Used for building unit tests in FS
+// WebpBenchmarks.GetBytes(testPngBytes);

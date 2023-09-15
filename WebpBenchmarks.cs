@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using ImageMagick;
+using ImageMagick.Formats;
 
 namespace TestImageCompression;
 
@@ -14,16 +15,20 @@ public static class WebpBenchmarks
 
         image.Strip();
 
-        if (quality >= 100)
+        var fileName = $"out.{quality}";
+
+        var defines = new WebPWriteDefines
         {
-            image.Settings.SetDefine(MagickFormat.WebP, "lossless", true);
-        }
-        else
+            Lossless = true,
+            Method = 6,
+        };
+
+        if (quality < 100)
         {
             image.Quality = quality;
+            defines.Lossless = false;
+            defines.Method = 5;
         }
-
-        var fileName = $"out.{quality}";
 
         if (image.Height > maxHeight)
         {
@@ -33,9 +38,25 @@ public static class WebpBenchmarks
 
         fileName += ".webp";
 
-        await image.WriteAsync(fileName);
+        await image.WriteAsync(fileName, defines);
 
         var elapsed = Stopwatch.GetElapsedTime(startTime);
         H.Log(fileName, new FileInfo(fileName).Length, elapsed);
+    }
+
+    public static async Task GetBytesAsBase64(byte[] testPngBytes)
+    {
+        using var inStream = new MemoryStream(testPngBytes);
+        using var image = new MagickImage(inStream);
+
+        image.Strip();
+
+        using var ms = new MemoryStream();
+
+        await image.WriteAsync(ms);
+
+        var array = ms.ToArray();
+
+        Console.WriteLine(Convert.ToBase64String(array));
     }
 }
